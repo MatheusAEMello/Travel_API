@@ -26,4 +26,6 @@ public class Destination {
     private double averageRating;
 
     private int totalRatings;
+
+    private int totalReservations;
 }
