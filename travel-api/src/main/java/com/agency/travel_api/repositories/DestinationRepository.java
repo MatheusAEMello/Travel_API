@@ -16,8 +16,6 @@ public class DestinationRepository {
     public Destination save(Destination destination) {
         if (destination.getId() == null) {
             destination.setId(nextId++);
-            destination.setAverageRating(0.0);
-            destination.setTotalRatings(0);
             destinations.add(destination);
         } else {
             deleteById(destination.getId());
@@ -34,6 +32,13 @@ public class DestinationRepository {
         return destinations.stream()
                 .filter(destination -> destination.getId().equals(id))
                 .findFirst();
+    }
+
+    public List<Destination> searchByNameOrLocation(String name, String location) {
+        return destinations.stream()
+                .filter(destination -> (name == null || destination.getName().equalsIgnoreCase(name)) &&
+                        (location == null || destination.getLocation().equalsIgnoreCase(location)))
+                .toList();
     }
 
     public boolean deleteById(Long id) {
