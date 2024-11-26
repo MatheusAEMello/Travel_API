@@ -21,9 +21,26 @@ public class DestinationController {
 
     @PostMapping
     public ResponseEntity<Destination> create(@Valid @RequestBody DestinationDto dto) {
-        Destination destination = new Destination(null, dto.getName(), dto.getLocation(), dto.getDescription(), 0, 0);
+        Destination destination = new Destination(null, dto.getName(), dto.getLocation(), dto.getDescription(), 0.0, 0, 0);
         return ResponseEntity.ok(service.create(destination));
     }
+    @PostMapping("/{id}/reserve")
+    public ResponseEntity<Destination> reserveDestination(@PathVariable Long id) {
+        return service.reserveDestination(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+    @PostMapping("/bulk")
+    public ResponseEntity<List<Destination>> createMultiple(@Valid @RequestBody List<DestinationDto> dtoList) {
+        List<Destination> destinations = dtoList.stream()
+                .map(dto -> new Destination(null, dto.getName(), dto.getLocation(), dto.getDescription(), 0.0, 0, 0))
+                .toList();
+        List<Destination> createdDestinations = destinations.stream()
+                .map(service::create)
+                .toList();
+        return ResponseEntity.ok(createdDestinations);
+    }
+
 
     @GetMapping
     public ResponseEntity<List<Destination>> getAll() {
@@ -37,6 +54,13 @@ public class DestinationController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @GetMapping("/search")
+    public ResponseEntity<List<Destination>> searchDestinations(
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) String location) {
+        return ResponseEntity.ok(service.searchByNameOrLocation(name, location));
+    }
+
     @PatchMapping("/{id}/rating")
     public ResponseEntity<Destination> addRating(@PathVariable Long id, @RequestParam double rating) {
         return service.addRating(id, rating)
@@ -44,10 +68,20 @@ public class DestinationController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<Destination> update(@PathVariable Long id, @Valid @RequestBody DestinationDto dto) {
+        return service.update(id, dto)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        return service.delete(id)
-                ? ResponseEntity.noContent().build()
-                : ResponseEntity.notFound().build();
+    public ResponseEntity<String> deleteDestination(@PathVariable Long id) {
+        boolean isDeleted = service.delete(id);
+        if (isDeleted) {
+            return ResponseEntity.ok("Destination with ID " + id + " has been deleted.");
+        } else {
+            return ResponseEntity.status(404).body("Destination with ID " + id + " not found.");
+        }
     }
 }
