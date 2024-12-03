@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class DestinationService {
@@ -17,8 +18,18 @@ public class DestinationService {
         this.repository = repository;
     }
 
-    public Destination create(Destination destination) {
+    public Destination createDestination(DestinationDto dto) {
+        Destination destination = new Destination(null, dto.getName(), dto.getLocation(), dto.getDescription(), 0.0, 0, 0);
         return repository.save(destination);
+    }
+
+    public List<Destination> createMultipleDestinations(List<DestinationDto> dtoList) {
+        List<Destination> destinations = dtoList.stream()
+                .map(dto -> new Destination(null, dto.getName(), dto.getLocation(), dto.getDescription(), 0.0, 0, 0))
+                .collect(Collectors.toList());
+        return destinations.stream()
+                .map(repository::save)
+                .collect(Collectors.toList());
     }
 
     public List<Destination> getAll() {
@@ -32,6 +43,7 @@ public class DestinationService {
     public List<Destination> searchByNameOrLocation(String name, String location) {
         return repository.searchByNameOrLocation(name, location);
     }
+
     public Optional<Destination> reserveDestination(Long id) {
         return repository.findById(id).map(destination -> {
             destination.setTotalReservations(destination.getTotalReservations() + 1);
