@@ -21,26 +21,20 @@ public class DestinationController {
 
     @PostMapping
     public ResponseEntity<Destination> create(@Valid @RequestBody DestinationDto dto) {
-        Destination destination = new Destination(null, dto.getName(), dto.getLocation(), dto.getDescription(), 0.0, 0, 0);
-        return ResponseEntity.ok(service.create(destination));
+        return ResponseEntity.ok(service.createDestination(dto));
     }
+
     @PostMapping("/{id}/reserve")
     public ResponseEntity<Destination> reserveDestination(@PathVariable Long id) {
         return service.reserveDestination(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
+
     @PostMapping("/bulk")
     public ResponseEntity<List<Destination>> createMultiple(@Valid @RequestBody List<DestinationDto> dtoList) {
-        List<Destination> destinations = dtoList.stream()
-                .map(dto -> new Destination(null, dto.getName(), dto.getLocation(), dto.getDescription(), 0.0, 0, 0))
-                .toList();
-        List<Destination> createdDestinations = destinations.stream()
-                .map(service::create)
-                .toList();
-        return ResponseEntity.ok(createdDestinations);
+        return ResponseEntity.ok(service.createMultipleDestinations(dtoList));
     }
-
 
     @GetMapping
     public ResponseEntity<List<Destination>> getAll() {
